@@ -1,69 +1,82 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Wallet } from 'lucide-react';
 import { ExpenseForm } from './components/ExpenseForm';
 import { ExpenseList } from './components/ExpenseList';
 import { Dashboard } from './components/Dashboard';
-import { useExpenses } from './hooks/useExpenses';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { ErrorMessage } from './components/ErrorMessage';
+import { useExpenses } from './lib/hooks/useExpenses';
 
 function App() {
-  const { expenses, error, loading, loadExpenses, handleAddExpense, handleDeleteExpense } = useExpenses();
-  const [activeTab, setActiveTab] = React.useState<'dashboard' | 'expenses'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses'>('dashboard');
+  const { expenses, loading, error, fetchExpenses, addExpense, deleteExpense } = useExpenses();
 
   useEffect(() => {
-    loadExpenses();
-  }, [loadExpenses]);
+    fetchExpenses();
+  }, [fetchExpenses]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Financial Control System</h1>
-        
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
-        
-        <div className="mb-8">
-          <nav className="flex space-x-4">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2 rounded-md ${
-                activeTab === 'dashboard'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('expenses')}
-              className={`px-4 py-2 rounded-md ${
-                activeTab === 'expenses'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Expenses
-            </button>
-          </nav>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          activeTab === 'dashboard' ? (
-            <Dashboard expenses={expenses} />
-          ) : (
-            <div className="space-y-8">
-              <ExpenseForm onSubmit={handleAddExpense} />
-              <ExpenseList expenses={expenses} onDelete={handleDeleteExpense} />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-100">
+        <nav className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex items-center">
+                <Wallet className="h-8 w-8 text-blue-600" />
+                <span className="ml-2 text-xl font-semibold text-gray-900">Controle Financeiro</span>
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md ${
+                    activeTab === 'dashboard'
+                      ? 'text-white bg-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('expenses')}
+                  className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md ${
+                    activeTab === 'expenses'
+                      ? 'text-white bg-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Despesas
+                </button>
+              </div>
             </div>
-          )
-        )}
+          </div>
+        </nav>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {error && <ErrorMessage message={error} />}
+          {loading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              {activeTab === 'dashboard' ? (
+                <Dashboard expenses={expenses} />
+              ) : (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
+                      <ExpenseForm onSubmit={addExpense} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <ExpenseList expenses={expenses} onDelete={deleteExpense} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </main>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
 

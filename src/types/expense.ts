@@ -5,18 +5,7 @@ export type Expense = {
   amount: number;
   category: string;
   date: string;
-}
+  created_at?: string;
+};
 
-export type ExpenseFormData = Omit<Expense, 'id'>;
-
-export const categories = [
-  'Food',
-  'Transportation',
-  'Housing',
-  'Entertainment',
-  'Health',
-  'Shopping',
-  'Others'
-] as const;
-
-export type Category = typeof categories[number];
+export type ExpenseFormData = Omit<Expense, 'id' | 'created_at'>;
